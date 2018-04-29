@@ -2,21 +2,19 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import {
-  audioMute,
-  audioUnMute,
-  audioPlay,
-  audioPause,
-} from 'redux/modules/audioPlayer'
+import * as audioActions from 'redux/modules/audioPlayer'
 
 class AudioPlayer extends Component {
   static propTypes = {
-    sourceUrl: PropTypes.string.isRequired,
+    // audioPlay: PropTypes.func.isRequired,
     audioMute: PropTypes.func.isRequired,
     audioUnMute: PropTypes.func.isRequired,
-    volume: PropTypes.number.isRequired,
+    audioUpdateCurrentTime: PropTypes.func.isRequired,
+    muted: PropTypes.bool.isRequired,
     playing: PropTypes.bool.isRequired,
-    audioPlay: PropTypes.func.isRequired,
+    seekedTime: PropTypes.number.isRequired,
+    sourceUrl: PropTypes.string.isRequired,
+    volume: PropTypes.number.isRequired,
   }
 
   constructor(props) {
@@ -25,12 +23,6 @@ class AudioPlayer extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    console.log(prevProps, this.props)
-
-    if (prevProps.sourceUrl !== this.props.sourceUrl) {
-      this.updateSourceUrl()
-    }
-
     if (prevProps.volume !== this.props.volume) {
       this.updatePlayerVolume(this.props.volume)
     }
@@ -38,18 +30,24 @@ class AudioPlayer extends Component {
     if (prevProps.playing !== this.props.playing) {
       this.updatePlayingStatus()
     }
+
+    if (prevProps.seekedTime !== this.props.seekedTime) {
+      this.updateSeekCurrentTime()
+    }
   }
 
   getCurrentVolume = () => this.player.current.volume
 
-  updateSourceUrl() {
-    const player = this.player.current
-    player.src = this.props.sourceUrl
-    this.props.audioPlay()
+  handleTimeUpdate = (e) => {
+    this.props.audioUpdateCurrentTime(e.target.currentTime)
   }
 
   updatePlayerVolume(volume) {
     this.player.current.volume = volume
+  }
+
+  updateSeekCurrentTime() {
+    this.player.current.currentTime = this.props.seekedTime
   }
 
   updatePlayingStatus() {
@@ -77,10 +75,22 @@ class AudioPlayer extends Component {
   }
 
   render() {
+    const {
+      sourceUrl,
+      muted,
+    } = this.props
+
     return (
       <div>
         <h1>AudioPlayer</h1>
-        <video ref={this.player} controls>
+        <video
+          autoPlay
+          controls
+          onTimeUpdate={this.handleTimeUpdate}
+          ref={this.player}
+          src={sourceUrl}
+          muted={muted}
+        >
           <track kind='captions' />
         </video>
       </div>
@@ -90,19 +100,17 @@ class AudioPlayer extends Component {
 
 function mapStateToProps({ audioPlayer }) {
   return {
+    currentTime: audioPlayer.currentTime,
+    muted: audioPlayer.muted,
+    playing: audioPlayer.playing,
+    seekedTime: audioPlayer.seekedTime,
     sourceUrl: audioPlayer.sourceUrl,
     volume: audioPlayer.volume,
-    playing: audioPlayer.playing,
   }
 }
 
 function mapDispatchToProps(dispatch) {
-  return bindActionCreators({
-    audioMute,
-    audioUnMute,
-    audioPlay,
-    audioPause,
-  }, dispatch)
+  return bindActionCreators(audioActions, dispatch)
 }
 
 export default connect(

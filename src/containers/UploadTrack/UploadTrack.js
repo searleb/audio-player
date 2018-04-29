@@ -11,8 +11,12 @@ class UploadTrack extends Component {
 
   onUpload = (e) => {
     const audioFile = e.target.files[0]
-    const source = URL.createObjectURL(audioFile)
-    this.props.audioUpdateSource(source)
+    try {
+      const source = URL.createObjectURL(audioFile)
+      this.props.audioUpdateSource(source)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   render() {

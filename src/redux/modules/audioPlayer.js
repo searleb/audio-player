@@ -3,6 +3,9 @@ const AUDIO_MUTE = 'AUDIO_MUTE'
 const AUDIO_UNMUTE = 'AUDIO_UNMUTE'
 const AUDIO_PLAY = 'AUDIO_PLAY'
 const AUDIO_PAUSE = 'AUDIO_PAUSE'
+const AUDIO_SKIP_FORWARD = 'AUDIO_SKIP_FORWARD'
+const AUDIO_SKIP_BACKWARD = 'AUDIO_SKIP_BACKWARD'
+const AUDIO_UPDATE_CURRENT_TIME = 'AUDIO_UPDATE_CURRENT_TIME'
 
 export const audioUpdateSource = sourceUrl => ({
   type: AUDIO_UPDATE_SOURCE,
@@ -25,11 +28,26 @@ export const audioPause = () => ({
   type: AUDIO_PAUSE,
 })
 
-export
+export const audioSkipForward = () => ({
+  type: AUDIO_SKIP_FORWARD,
+})
+
+export const audioSkipBackward = () => ({
+  type: AUDIO_SKIP_BACKWARD,
+})
+
+export const audioUpdateCurrentTime = currentTime => ({
+  type: AUDIO_UPDATE_CURRENT_TIME,
+  currentTime,
+})
+
 const initialState = {
   sourceUrl: '',
   volume: 1,
   playing: false,
+  currentTime: 0,
+  muted: false,
+  seekedTime: 0,
 }
 
 export default function audioPlayer(state = initialState, action) {
@@ -42,12 +60,12 @@ export default function audioPlayer(state = initialState, action) {
     case 'AUDIO_MUTE':
       return {
         ...state,
-        volume: 0,
+        muted: true,
       }
     case 'AUDIO_UNMUTE':
       return {
         ...state,
-        volume: 1,
+        muted: false,
       }
     case 'AUDIO_PLAY':
       return {
@@ -58,6 +76,21 @@ export default function audioPlayer(state = initialState, action) {
       return {
         ...state,
         playing: false,
+      }
+    case 'AUDIO_SKIP_FORWARD':
+      return {
+        ...state,
+        seekedTime: state.currentTime + 15,
+      }
+    case 'AUDIO_SKIP_BACKWARD':
+      return {
+        ...state,
+        seekedTime: state.currentTime - 15,
+      }
+    case 'AUDIO_UPDATE_CURRENT_TIME':
+      return {
+        ...state,
+        currentTime: action.currentTime,
       }
     default:
       return state
